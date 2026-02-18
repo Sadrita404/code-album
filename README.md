@@ -21,16 +21,14 @@
 ---
 
 ## 📸 Screenshots
+<img width="800" height="401" alt="Screenshot 2026-02-18 at 9 26 24 AM" src="https://github.com/user-attachments/assets/d56c73c0-66d2-4761-8bc6-e024a73df630" />
 
-<div align="center">
-  <p><b>Modern Landing Page</b></p>
-  <img src="https://via.placeholder.com/800x450?text=LuminaCode+Home+Screen" width="800" alt="Landing Page" />
-  
-  <br/><br/>
-  
-  <p><b>Seamless Album View with C++ Syntax Highlighting</b></p>
-  <img src="https://via.placeholder.com/800x450?text=LuminaCode+Album+Interface" width="800" alt="Album View" />
-</div>
+<img width="800" height="360" alt="Screenshot 2026-02-18 at 9 26 33 AM" src="https://github.com/user-attachments/assets/83f52100-e6dc-4f3f-8de7-a788751d30c7" />
+
+<img width="258" height="698" alt="Screenshot 2026-02-18 at 9 26 52 AM" src="https://github.com/user-attachments/assets/ee8b8b24-eb71-4c9c-8c44-15dd5ab9a119" />
+
+<img width="1212" height="100" alt="Screenshot 2026-02-18 at 9 26 59 AM" src="https://github.com/user-attachments/assets/fb847766-ed5a-499b-be52-18531415f184" />
+
 
 ---
 
