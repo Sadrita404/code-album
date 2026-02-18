@@ -20,7 +20,8 @@ interface FileNodeProps {
 }
 
 function FileNode({ node, selectedPath, readFiles, onSelectFile, depth }: FileNodeProps) {
-  const [open, setOpen] = useState(true);
+  // Folders start CLOSED by default
+  const [open, setOpen] = useState(false);
   const isSelected = node.path === selectedPath;
   const isRead = readFiles.has(node.path);
   const isCpp = node.type === "file" && isCppFile(node.name);
@@ -32,35 +33,68 @@ function FileNode({ node, selectedPath, readFiles, onSelectFile, depth }: FileNo
     };
     if (!hasCppDescendant(node)) return null;
 
+    // Count cpp files inside for badge
+    const countCpp = (n: TreeNode): number => {
+      if (n.type === "file" && isCppFile(n.name)) return 1;
+      return (n.children || []).reduce((acc, c) => acc + countCpp(c), 0);
+    };
+    const cppCount = countCpp(node);
+    const readCount = (n: TreeNode): number => {
+      if (n.type === "file" && isCppFile(n.name)) return readFiles.has(n.path) ? 1 : 0;
+      return (n.children || []).reduce((acc, c) => acc + readCount(c), 0);
+    };
+    const readCnt = readCount(node);
+
     return (
       <div>
         <button
           onClick={() => setOpen((o) => !o)}
-          className="flex items-center w-full gap-1.5 py-1 px-2 rounded-md text-sm hover:bg-accent/80 transition-colors text-muted-foreground hover:text-foreground group"
+          className="flex items-center w-full gap-1.5 py-1.5 px-2 rounded-md text-sm hover:bg-accent/70 transition-all duration-150 text-muted-foreground hover:text-foreground group"
           style={{ paddingLeft: `${depth * 12 + 8}px` }}
         >
-          <span className="text-muted-foreground/70 group-hover:text-muted-foreground transition-colors">
-            {open ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
+          <span
+            className={cn(
+              "text-muted-foreground/60 group-hover:text-muted-foreground transition-all duration-200",
+              open && "text-primary/70"
+            )}
+            style={{ transform: open ? "rotate(0deg)" : "rotate(-90deg)", display: "inline-block", transition: "transform 0.2s ease" }}
+          >
+            <ChevronDown className="h-3.5 w-3.5" />
           </span>
-          <span className="text-primary/80">
+          <span className={cn("transition-colors", open ? "text-primary" : "text-primary/60")}>
             {open ? <FolderOpen className="h-3.5 w-3.5" /> : <Folder className="h-3.5 w-3.5" />}
           </span>
-          <span className="truncate font-medium">{node.name}</span>
+          <span className="truncate font-medium flex-1 text-left">{node.name}</span>
+          {readCnt > 0 && (
+            <span className={cn(
+              "shrink-0 text-[10px] font-medium px-1.5 py-0.5 rounded-full transition-all",
+              readCnt === cppCount
+                ? "bg-read-mark/15 text-read-mark"
+                : "bg-muted text-muted-foreground"
+            )}>
+              {readCnt}/{cppCount}
+            </span>
+          )}
         </button>
-        {open && node.children && (
-          <div className="animate-accordion-down">
-            {node.children.map((child) => (
-              <FileNode
-                key={child.path}
-                node={child}
-                selectedPath={selectedPath}
-                readFiles={readFiles}
-                onSelectFile={onSelectFile}
-                depth={depth + 1}
-              />
-            ))}
-          </div>
-        )}
+        <div
+          className="overflow-hidden transition-all duration-200 ease-in-out"
+          style={{ maxHeight: open ? "9999px" : "0px", opacity: open ? 1 : 0 }}
+        >
+          {node.children && (
+            <div>
+              {node.children.map((child) => (
+                <FileNode
+                  key={child.path}
+                  node={child}
+                  selectedPath={selectedPath}
+                  readFiles={readFiles}
+                  onSelectFile={onSelectFile}
+                  depth={depth + 1}
+                />
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     );
   }
@@ -71,14 +105,17 @@ function FileNode({ node, selectedPath, readFiles, onSelectFile, depth }: FileNo
     <button
       onClick={() => onSelectFile(node)}
       className={cn(
-        "flex items-center w-full gap-1.5 py-1 px-2 rounded-md text-sm transition-all group",
+        "flex items-center w-full gap-1.5 py-1.5 px-2 rounded-md text-sm transition-all duration-150 group",
         isSelected
-          ? "bg-primary/10 text-primary font-medium"
-          : "hover:bg-accent text-foreground/80 hover:text-foreground"
+          ? "bg-primary/12 text-primary font-medium shadow-[inset_0_0_0_1px_hsl(var(--primary)/0.15)]"
+          : "hover:bg-accent text-foreground/75 hover:text-foreground"
       )}
       style={{ paddingLeft: `${depth * 12 + 20}px` }}
     >
-      <span className={cn("shrink-0", isSelected ? "text-primary" : "text-muted-foreground group-hover:text-foreground/70")}>
+      <span className={cn(
+        "shrink-0 transition-colors",
+        isSelected ? "text-primary" : "text-muted-foreground/60 group-hover:text-primary/50"
+      )}>
         <FileCode2 className="h-3.5 w-3.5" />
       </span>
       <span className="truncate flex-1 text-left">{node.name}</span>

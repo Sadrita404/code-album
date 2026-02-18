@@ -82,6 +82,31 @@ export default function Index() {
     });
   }, []);
 
+  // Jump to the first file of the next folder relative to the current file
+  const handleNextFolder = useCallback(() => {
+    if (!selectedFile || cppFiles.length === 0) return;
+    // Determine current file's top-level folder
+    const currentFolder = selectedFile.path.split("/")[0];
+    // Find first file that belongs to a different folder (after current index)
+    for (let i = selectedIndex + 1; i < cppFiles.length; i++) {
+      const folder = cppFiles[i].path.split("/")[0];
+      if (folder !== currentFolder) {
+        setSelectedFile(cppFiles[i]);
+        setSelectedIndex(i);
+        return;
+      }
+    }
+    // If no different folder found forward, try full list from start
+    for (let i = 0; i < selectedIndex; i++) {
+      const folder = cppFiles[i].path.split("/")[0];
+      if (folder !== currentFolder) {
+        setSelectedFile(cppFiles[i]);
+        setSelectedIndex(i);
+        return;
+      }
+    }
+  }, [selectedFile, cppFiles, selectedIndex]);
+
   const progressPercent = cppFiles.length > 0
     ? Math.round((readFiles.size / cppFiles.length) * 100)
     : 0;
@@ -289,6 +314,7 @@ export default function Index() {
             readFiles={readFiles}
             onToggleRead={handleToggleRead}
             onNavigate={handleNavigate}
+            onNextFolder={handleNextFolder}
           />
         </div>
       )}
