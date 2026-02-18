@@ -1,4 +1,4 @@
-# 📖 LuminaCode: GitHub Album Reader
+# 📖 CodeReader: GitHub Album Reader
 
 ### *Experience code like a gallery, not a file system.*
 
@@ -16,7 +16,7 @@
 
 ## 🌟 Overview
 
-**LuminaCode** is a premium, light-themed web application designed to transform complex GitHub repositories into a seamless "Album" or "Slideshow" experience. Built specifically for developers who study large codebases (like Competitive Programming solutions or C++ libraries), it eliminates the friction of manual folder navigation.
+**CodeReader** is a premium, light-themed web application designed to transform complex GitHub repositories into a seamless "Album" or "Slideshow" experience. Built specifically for developers who study large codebases (like Competitive Programming solutions or C++ libraries), it eliminates the friction of manual folder navigation.
 
 ---
 
