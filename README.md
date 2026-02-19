@@ -47,7 +47,7 @@ Stop clicking back and forth. Navigate through every file in the repository usin
 * **Quick Jump:** Use the **Next Folder** button to skip the rest of a directory and move to the next logical section.
 * **Smart Layout:** Navigation buttons are positioned close together on the left for ergonomic, fast-paced code reviewing.
 
-### 🎨 Lovable-Inspired Aesthetic
+### 🎨 Sadrita-Inspired Aesthetic
 * **Light Mode:** A soft, modern palette of off-whites and subtle lavenders.
 * **Premium Motion:** Powered by Framer Motion for elegant, "sliding" transitions between code files.
 * **One-Click Copy:** Instant "Copy Code" functionality with haptic-style visual feedback.
