@@ -201,26 +201,30 @@ export default function Index() {
           </button>
         </div>
 
-        {/* Stats */}
+        {/* Stats — always visible when loaded */}
         {loaded && cppFiles.length > 0 && (
-          <div className="hidden md:flex items-center gap-4 ml-auto shrink-0">
-            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <FolderOpen className="h-3.5 w-3.5" />
-              <span className="font-medium text-foreground">{cppFiles.length}</span> files
+          <div className="flex items-center gap-3 ml-auto shrink-0">
+            {/* Counts */}
+            <div className="hidden sm:flex items-center gap-1.5 text-xs text-muted-foreground">
+              <FolderOpen className="h-3.5 w-3.5 shrink-0" />
+              <span className="font-medium text-foreground">{cppFiles.length}</span>
+              <span>files</span>
             </div>
-            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <CheckCircle2 className="h-3.5 w-3.5 text-read-mark" />
-              <span className="font-medium text-read-mark">{readFiles.size}</span>/{cppFiles.length} read
+            {/* Read chip */}
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-read-mark-bg border border-read-mark/20 text-xs font-medium text-read-mark transition-all duration-300">
+              <CheckCircle2 className="h-3.5 w-3.5 shrink-0" />
+              <span>{readFiles.size}/{cppFiles.length}</span>
+              <span className="hidden sm:inline">read</span>
             </div>
-            {/* Mini progress bar */}
+            {/* Progress bar + % */}
             <div className="flex items-center gap-2">
-              <div className="w-20 h-1.5 rounded-full bg-border overflow-hidden">
+              <div className="w-24 h-2 rounded-full bg-border overflow-hidden">
                 <div
-                  className="h-full rounded-full bg-read-mark transition-all duration-500"
+                  className="h-full rounded-full bg-read-mark transition-all duration-500 ease-out"
                   style={{ width: `${progressPercent}%` }}
                 />
               </div>
-              <span className="text-xs text-muted-foreground">{progressPercent}%</span>
+              <span className="text-xs font-semibold text-read-mark w-8 tabular-nums">{progressPercent}%</span>
             </div>
           </div>
         )}
@@ -388,6 +392,7 @@ export default function Index() {
             allFiles={cppFiles}
             currentIndex={selectedIndex}
             readFiles={readFiles}
+            readPercent={progressPercent}
             onToggleRead={handleToggleRead}
             onNavigate={handleNavigate}
             onNextFolder={handleNextFolder}

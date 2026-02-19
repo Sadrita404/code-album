@@ -20,6 +20,7 @@ interface CodeViewerProps {
   allFiles: TreeNode[];
   currentIndex: number;
   readFiles: Set<string>;
+  readPercent: number;
   onToggleRead: (path: string) => void;
   onNavigate: (index: number) => void;
   onNextFolder: () => void;
@@ -50,6 +51,7 @@ export function CodeViewer({
   allFiles,
   currentIndex,
   readFiles,
+  readPercent,
   onToggleRead,
   onNavigate,
   onNextFolder,
@@ -119,7 +121,8 @@ export function CodeViewer({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [handleKeyDown]);
 
-  const progressPercent = allFiles.length > 0
+  // Navigation position for the centre bar (file index / total)
+  const navPercent = allFiles.length > 0
     ? Math.round((currentIndex + 1) / allFiles.length * 100)
     : 0;
 
@@ -359,24 +362,30 @@ export function CodeViewer({
           Previous
         </button>
 
-        {/* Centre progress */}
+        {/* Centre: navigation position + live read progress */}
         <div className="flex flex-col items-center gap-1.5">
+          {/* File position */}
           <div className="flex items-center gap-2 text-sm">
             <BookOpen className="h-3.5 w-3.5 text-muted-foreground" />
             <span className="font-bold text-foreground">{currentIndex + 1}</span>
             <span className="text-muted-foreground">/</span>
             <span className="text-muted-foreground">{allFiles.length}</span>
           </div>
+          {/* Navigation progress bar (blue) */}
           <div className="w-36 h-1.5 rounded-full bg-border overflow-hidden">
             <div
               className="h-full rounded-full bg-primary transition-all duration-500 ease-out"
-              style={{ width: `${progressPercent}%` }}
+              style={{ width: `${navPercent}%` }}
             />
           </div>
-          <div className="flex items-center gap-1 text-xs text-muted-foreground">
-            <span className="text-read-mark font-semibold">{readFiles.size}</span>
-            <span>read ·</span>
-            <span>{progressPercent}%</span>
+          {/* Live read progress */}
+          <div className="flex items-center gap-1.5 text-xs">
+            <CheckCircle2 className="h-3 w-3 text-read-mark" />
+            <span className="text-read-mark font-semibold tabular-nums">{readFiles.size}</span>
+            <span className="text-muted-foreground">read</span>
+            <span className="text-border">·</span>
+            <span className="font-bold text-read-mark tabular-nums">{readPercent}%</span>
+            <span className="text-muted-foreground">complete</span>
           </div>
         </div>
 
