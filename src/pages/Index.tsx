@@ -23,6 +23,10 @@ export default function Index() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [loaded, setLoaded] = useState(false);
 
+  // LocalStorage key for a given repo
+  const storageKey = (owner: string, repo: string) =>
+    `codereader_read_${owner}_${repo}`;
+
   const handleLoad = useCallback(async () => {
     const parsed = parseGitHubUrl(repoUrl);
     if (!parsed) {
@@ -34,7 +38,6 @@ export default function Index() {
     setTree([]);
     setCppFiles([]);
     setSelectedFile(null);
-    setReadFiles(new Set());
     setLoaded(false);
 
     try {
@@ -44,6 +47,13 @@ export default function Index() {
       setCppFiles(flat);
       setRepoInfo(parsed);
       setLoaded(true);
+
+      // Restore read state from localStorage for this repo
+      const key = storageKey(parsed.owner, parsed.repo);
+      const saved = localStorage.getItem(key);
+      const restored: Set<string> = saved ? new Set(JSON.parse(saved)) : new Set();
+      setReadFiles(restored);
+
       if (flat.length > 0) {
         setSelectedFile(flat[0]);
         setSelectedIndex(0);
@@ -78,9 +88,14 @@ export default function Index() {
       const next = new Set(prev);
       if (next.has(path)) next.delete(path);
       else next.add(path);
+      // Persist to localStorage keyed by current repo
+      if (repoInfo) {
+        const key = storageKey(repoInfo.owner, repoInfo.repo);
+        localStorage.setItem(key, JSON.stringify([...next]));
+      }
       return next;
     });
-  }, []);
+  }, [repoInfo]);
 
   // Jump to the first file of the next folder relative to the current file
   const handleNextFolder = useCallback(() => {
