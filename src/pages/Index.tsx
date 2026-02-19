@@ -1,7 +1,8 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import {
   Github, Search, Loader2, AlertCircle, X, ChevronDown,
-  BookOpen, CheckCircle2, FolderOpen, PanelLeftClose, PanelLeft
+  BookOpen, CheckCircle2, FolderOpen, PanelLeftClose, PanelLeft,
+  Sun, Moon
 } from "lucide-react";
 import { parseGitHubUrl, fetchRepoTree, flattenCppFiles, TreeNode } from "@/lib/github";
 import { FileTree } from "@/components/FileTree";
@@ -10,7 +11,30 @@ import { cn } from "@/lib/utils";
 
 const DEFAULT_REPO = "https://github.com/DionysiosB/CodeForces";
 
+// ─── Dark mode hook ─────────────────────────────────────────────────────────
+function useDarkMode() {
+  const [dark, setDark] = useState<boolean>(() => {
+    const saved = localStorage.getItem("codereader_theme");
+    if (saved) return saved === "dark";
+    return window.matchMedia("(prefers-color-scheme: dark)").matches;
+  });
+
+  useEffect(() => {
+    const root = document.documentElement;
+    if (dark) {
+      root.classList.add("dark");
+      localStorage.setItem("codereader_theme", "dark");
+    } else {
+      root.classList.remove("dark");
+      localStorage.setItem("codereader_theme", "light");
+    }
+  }, [dark]);
+
+  return [dark, setDark] as const;
+}
+
 export default function Index() {
+  const [dark, setDark] = useDarkMode();
   const [repoUrl, setRepoUrl] = useState(DEFAULT_REPO);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -22,6 +46,7 @@ export default function Index() {
   const [repoInfo, setRepoInfo] = useState<{ owner: string; repo: string } | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [loaded, setLoaded] = useState(false);
+
 
   // LocalStorage key for a given repo
   const storageKey = (owner: string, repo: string) =>
@@ -163,7 +188,7 @@ export default function Index() {
             disabled={loading || !repoUrl}
             className={cn(
               "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all border-0 shrink-0",
-              "bg-primary text-primary-foreground hover:bg-primary/90",
+              "bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm",
               (loading || !repoUrl) && "opacity-60 cursor-not-allowed"
             )}
           >
@@ -172,7 +197,7 @@ export default function Index() {
             ) : (
               <Search className="h-4 w-4" />
             )}
-            <span className="hidden sm:block">Load</span>
+            <span className="hidden sm:block">{loaded ? "Load" : "Load"}</span>
           </button>
         </div>
 
@@ -200,16 +225,51 @@ export default function Index() {
           </div>
         )}
 
-        {/* Sidebar toggle */}
-        {loaded && (
+        {/* Right side controls */}
+        <div className="flex items-center gap-2 shrink-0 ml-auto md:ml-0">
+          {/* Day / Night toggle */}
           <button
-            onClick={() => setSidebarOpen((o) => !o)}
-            className="shrink-0 p-2 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-all"
-            title={sidebarOpen ? "Hide sidebar" : "Show sidebar"}
+            onClick={() => setDark((d) => !d)}
+            aria-label="Toggle dark mode"
+            className={cn(
+              "relative inline-flex items-center rounded-full border-2 transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50",
+              "w-[52px] h-[28px]",
+              dark
+                ? "bg-primary border-primary"
+                : "bg-secondary border-border"
+            )}
           >
-            {sidebarOpen ? <PanelLeftClose className="h-4 w-4" /> : <PanelLeft className="h-4 w-4" />}
+            {/* Track icons */}
+            <Sun className={cn(
+              "absolute left-1 h-3.5 w-3.5 transition-all duration-300",
+              dark ? "opacity-0 scale-50" : "opacity-100 scale-100 text-amber-500"
+            )} />
+            <Moon className={cn(
+              "absolute right-1 h-3.5 w-3.5 transition-all duration-300",
+              dark ? "opacity-100 scale-100 text-primary-foreground" : "opacity-0 scale-50"
+            )} />
+            {/* Thumb */}
+            <span
+              className={cn(
+                "absolute top-[3px] h-[18px] w-[18px] rounded-full shadow-sm transition-all duration-300 ease-in-out",
+                dark
+                  ? "left-[26px] bg-white"
+                  : "left-[3px] bg-white"
+              )}
+            />
           </button>
-        )}
+
+          {/* Sidebar toggle */}
+          {loaded && (
+            <button
+              onClick={() => setSidebarOpen((o) => !o)}
+              className="p-2 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-all"
+              title={sidebarOpen ? "Hide sidebar" : "Show sidebar"}
+            >
+              {sidebarOpen ? <PanelLeftClose className="h-4 w-4" /> : <PanelLeft className="h-4 w-4" />}
+            </button>
+          )}
+        </div>
       </header>
 
       {/* Error bar */}
@@ -222,6 +282,7 @@ export default function Index() {
           </button>
         </div>
       )}
+
 
       {/* Loading state */}
       {loading && (
