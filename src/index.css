@@ -66,7 +66,63 @@
     --shadow-md: 0 4px 12px -2px hsl(220 25% 12% / 0.08), 0 2px 6px -2px hsl(220 25% 12% / 0.05);
     --shadow-card: 0 0 0 1px hsl(var(--border)), 0 4px 16px -4px hsl(220 25% 12% / 0.08);
   }
+
+  /* ========== DARK MODE ========== */
+  .dark {
+    --background: 224 20% 10%;
+    --foreground: 220 18% 90%;
+
+    --card: 224 18% 13%;
+    --card-foreground: 220 18% 90%;
+
+    --popover: 224 18% 13%;
+    --popover-foreground: 220 18% 90%;
+
+    --primary: 226 70% 62%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 224 16% 18%;
+    --secondary-foreground: 220 18% 78%;
+
+    --muted: 224 14% 16%;
+    --muted-foreground: 220 10% 55%;
+
+    --accent: 224 16% 20%;
+    --accent-foreground: 220 18% 88%;
+
+    --destructive: 0 62% 55%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 224 14% 20%;
+    --input: 224 14% 20%;
+    --ring: 226 70% 62%;
+
+    /* Sidebar - VS Code dark inspired */
+    --sidebar-background: 224 22% 8%;
+    --sidebar-foreground: 220 16% 75%;
+    --sidebar-primary: 226 70% 62%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 224 16% 16%;
+    --sidebar-accent-foreground: 220 18% 85%;
+    --sidebar-border: 224 14% 16%;
+    --sidebar-ring: 226 70% 62%;
+
+    /* Custom tokens */
+    --read-mark: 152 55% 50%;
+    --read-mark-bg: 152 40% 12%;
+    --code-bg: 224 20% 11%;
+    --code-border: 224 14% 20%;
+
+    /* Gradients */
+    --gradient-hero: linear-gradient(135deg, hsl(226, 40%, 14%) 0%, hsl(224, 20%, 10%) 60%);
+
+    /* Shadows */
+    --shadow-sm: 0 1px 3px 0 hsl(224 25% 5% / 0.3), 0 1px 2px -1px hsl(224 25% 5% / 0.2);
+    --shadow-md: 0 4px 12px -2px hsl(224 25% 5% / 0.4), 0 2px 6px -2px hsl(224 25% 5% / 0.3);
+    --shadow-card: 0 0 0 1px hsl(var(--border)), 0 4px 16px -4px hsl(224 25% 5% / 0.5);
+  }
 }
+
 
 @layer base {
   * {

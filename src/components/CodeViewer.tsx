@@ -7,8 +7,9 @@ import {
 import { Light as SyntaxHighlighter } from "react-syntax-highlighter";
 import cpp from "react-syntax-highlighter/dist/esm/languages/hljs/cpp";
 import c from "react-syntax-highlighter/dist/esm/languages/hljs/c";
-import { github } from "react-syntax-highlighter/dist/esm/styles/hljs";
-import { TreeNode, fetchFileContent, isCppFile } from "@/lib/github";
+import { github as githubLight } from "react-syntax-highlighter/dist/esm/styles/hljs";
+import { atomOneDark } from "react-syntax-highlighter/dist/esm/styles/hljs";
+import { TreeNode, fetchFileContent } from "@/lib/github";
 import { cn } from "@/lib/utils";
 
 SyntaxHighlighter.registerLanguage("cpp", cpp);
@@ -29,6 +30,21 @@ function getLanguage(name: string): string {
   return "cpp";
 }
 
+/** Read the current dark mode from the <html> element */
+function useIsDark() {
+  const [dark, setDark] = useState(() =>
+    document.documentElement.classList.contains("dark")
+  );
+  useEffect(() => {
+    const observer = new MutationObserver(() => {
+      setDark(document.documentElement.classList.contains("dark"));
+    });
+    observer.observe(document.documentElement, { attributeFilter: ["class"] });
+    return () => observer.disconnect();
+  }, []);
+  return dark;
+}
+
 export function CodeViewer({
   file,
   allFiles,
@@ -38,6 +54,7 @@ export function CodeViewer({
   onNavigate,
   onNextFolder,
 }: CodeViewerProps) {
+  const isDark = useIsDark();
   const [content, setContent] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -79,14 +96,12 @@ export function CodeViewer({
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
-      // Mac: Command+. → next code
       const isMac = navigator.platform.toUpperCase().includes("MAC");
       if (isMac && e.metaKey && e.key === ".") {
         e.preventDefault();
         if (hasNext) onNavigate(currentIndex + 1);
         return;
       }
-      // Arrow keys for next/prev code
       if (e.key === "ArrowLeft" && !e.metaKey && !e.ctrlKey && hasPrev) {
         e.preventDefault();
         onNavigate(currentIndex - 1);
@@ -108,12 +123,17 @@ export function CodeViewer({
     ? Math.round((currentIndex + 1) / allFiles.length * 100)
     : 0;
 
+  // ── Syntax theme colours (adapt to dark / light) ────────────────────────
+  const codeBg = isDark ? "hsl(224, 20%, 10%)" : "hsl(220, 30%, 99%)";
+  const lineNumberColor = isDark ? "hsl(220, 10%, 42%)" : "hsl(220, 12%, 70%)";
+  const lineNumberBorder = isDark ? "hsl(224, 14%, 18%)" : "hsl(220, 16%, 90%)";
+
   if (!file) {
     return (
       <div className="flex-1 flex items-center justify-center bg-background">
-        <div className="text-center space-y-4 animate-fade-in">
-          <div className="w-20 h-20 rounded-3xl bg-primary/8 border border-primary/15 flex items-center justify-center mx-auto shadow-sm">
-            <FileCode2 className="h-9 w-9 text-primary/40" />
+        <div className="text-center space-y-5 animate-fade-in">
+          <div className="w-24 h-24 rounded-3xl bg-primary/8 border border-primary/15 flex items-center justify-center mx-auto shadow-md">
+            <FileCode2 className="h-11 w-11 text-primary/40" />
           </div>
           <div>
             <p className="text-foreground font-semibold text-lg">No file selected</p>
@@ -141,9 +161,10 @@ export function CodeViewer({
 
   return (
     <div className="flex-1 flex flex-col min-h-0 bg-background">
-      {/* Header */}
+
+      {/* ── Toolbar / Header ─────────────────────────────────────────── */}
       <div className="shrink-0 flex items-center gap-3 px-5 py-3 border-b border-border bg-card" style={{ boxShadow: "var(--shadow-sm)" }}>
-        {/* File name */}
+        {/* File tab chip */}
         <div className="flex items-center gap-2 min-w-0">
           <div className="w-6 h-6 rounded-md bg-primary/10 flex items-center justify-center shrink-0">
             <FileCode2 className="h-3.5 w-3.5 text-primary" />
@@ -170,19 +191,22 @@ export function CodeViewer({
           {file.path}
         </span>
 
-        {/* Actions */}
+        {/* Action buttons */}
         <div className="flex items-center gap-2 ml-auto shrink-0">
           {!loading && content && (
-            <span className="text-xs text-muted-foreground hidden sm:block bg-secondary px-2 py-1 rounded-md font-mono">
+            <span className="text-xs text-muted-foreground hidden sm:block bg-secondary px-2 py-1 rounded-md font-mono border border-border/60">
               {lineCount} lines
             </span>
           )}
 
-          {/* Shortcuts hint */}
+          {/* Shortcuts toggle */}
           <button
             onClick={() => setShowShortcuts(s => !s)}
             title="Keyboard shortcuts"
-            className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-all"
+            className={cn(
+              "p-1.5 rounded-md transition-all",
+              showShortcuts ? "bg-accent text-foreground" : "text-muted-foreground hover:text-foreground hover:bg-accent"
+            )}
           >
             <Keyboard className="h-3.5 w-3.5" />
           </button>
@@ -197,27 +221,23 @@ export function CodeViewer({
             <span className="hidden sm:block">Next Folder</span>
           </button>
 
-          {/* Mark as read */}
+          {/* Mark as read — animated pill */}
           <button
             onClick={() => onToggleRead(file.path)}
             className={cn(
-              "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all border",
+              "relative flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all duration-200 border overflow-hidden",
               isRead
-                ? "bg-read-mark-bg text-read-mark border-read-mark/30 hover:bg-read-mark/20"
+                ? "bg-read-mark-bg text-read-mark border-read-mark/30 hover:border-read-mark/50"
                 : "bg-secondary text-secondary-foreground border-border hover:bg-accent"
             )}
           >
-            {isRead ? (
-              <>
-                <CheckCircle2 className="h-3.5 w-3.5" />
-                Read
-              </>
-            ) : (
-              <>
-                <Circle className="h-3.5 w-3.5" />
-                Mark read
-              </>
-            )}
+            <span className={cn(
+              "transition-all duration-200",
+              isRead ? "scale-110" : "scale-100"
+            )}>
+              {isRead ? <CheckCircle2 className="h-3.5 w-3.5" /> : <Circle className="h-3.5 w-3.5" />}
+            </span>
+            <span>{isRead ? "Read ✓" : "Mark read"}</span>
           </button>
 
           {/* Copy code */}
@@ -225,29 +245,23 @@ export function CodeViewer({
             onClick={handleCopyCode}
             disabled={loading || !content}
             className={cn(
-              "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all border",
+              "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all duration-200 border",
               copied
                 ? "bg-read-mark-bg text-read-mark border-read-mark/30"
-                : "bg-primary text-primary-foreground border-transparent hover:bg-primary/90",
+                : "bg-primary text-primary-foreground border-transparent hover:bg-primary/90 shadow-sm",
               (loading || !content) && "opacity-50 cursor-not-allowed"
             )}
           >
             {copied ? (
-              <>
-                <Check className="h-3.5 w-3.5" />
-                Copied!
-              </>
+              <><Check className="h-3.5 w-3.5" />Copied!</>
             ) : (
-              <>
-                <Copy className="h-3.5 w-3.5" />
-                Copy
-              </>
+              <><Copy className="h-3.5 w-3.5" />Copy</>
             )}
           </button>
         </div>
       </div>
 
-      {/* Shortcuts popover */}
+      {/* ── Shortcuts bar ───────────────────────────────────────────── */}
       {showShortcuts && (
         <div className="shrink-0 flex flex-wrap gap-3 px-5 py-2.5 bg-secondary/60 border-b border-border text-xs animate-fade-in">
           {[
@@ -256,7 +270,7 @@ export function CodeViewer({
             { key: "⌘ + .", label: "Next file (Mac)" },
           ].map(({ key, label }) => (
             <div key={key} className="flex items-center gap-1.5 text-muted-foreground">
-              <kbd className="inline-flex items-center px-1.5 py-0.5 rounded border border-border bg-card font-mono font-semibold text-foreground shadow-sm">
+              <kbd className="inline-flex items-center px-1.5 py-0.5 rounded border border-border bg-card font-mono font-semibold text-foreground shadow-sm text-[11px]">
                 {key}
               </kbd>
               <span>{label}</span>
@@ -265,15 +279,15 @@ export function CodeViewer({
         </div>
       )}
 
-      {/* Code area */}
-      <div className="flex-1 overflow-auto scrollbar-thin relative">
+      {/* ── Code pane ───────────────────────────────────────────────── */}
+      <div className="flex-1 overflow-auto scrollbar-thin relative" style={{ background: codeBg }}>
         {loading && (
-          <div className="absolute inset-0 flex items-center justify-center bg-background/90 backdrop-blur-sm z-10">
+          <div className="absolute inset-0 flex items-center justify-center z-10" style={{ background: codeBg + "cc" }}>
             <div className="flex flex-col items-center gap-3 text-muted-foreground">
               <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
                 <Loader2 className="h-5 w-5 animate-spin text-primary" />
               </div>
-              <span className="text-sm font-medium">Loading file...</span>
+              <span className="text-sm font-medium">Loading file…</span>
             </div>
           </div>
         )}
@@ -288,33 +302,36 @@ export function CodeViewer({
           </div>
         )}
         {!loading && !error && content && (
-          <div className="animate-fade-in h-full">
-            {/* Gradient top fade */}
-            <div className="pointer-events-none absolute top-0 left-0 right-0 h-6 z-[1]"
-              style={{ background: "linear-gradient(to bottom, hsl(220,20%,99%), transparent)" }} />
+          <div className="animate-fade-in h-full relative">
+            {/* Top fade */}
+            <div
+              className="pointer-events-none absolute top-0 left-0 right-0 h-8 z-[1]"
+              style={{ background: `linear-gradient(to bottom, ${codeBg}, transparent)` }}
+            />
             <SyntaxHighlighter
               language={getLanguage(file.name)}
-              style={github}
+              style={isDark ? atomOneDark : githubLight}
               showLineNumbers
               wrapLines
               customStyle={{
                 margin: 0,
-                padding: "28px 20px",
-                background: "hsl(220, 20%, 99%)",
+                padding: "32px 0 32px 0",
+                background: codeBg,
                 fontSize: "13.5px",
-                lineHeight: "1.7",
+                lineHeight: "1.75",
                 fontFamily: "'JetBrains Mono', 'Fira Code', monospace",
                 borderRadius: 0,
                 minHeight: "100%",
               }}
               lineNumberStyle={{
-                color: "hsl(220, 12%, 76%)",
-                minWidth: "3.5em",
-                paddingRight: "1.5em",
+                color: lineNumberColor,
+                minWidth: "4em",
+                paddingRight: "1.25em",
+                paddingLeft: "1.25em",
                 userSelect: "none",
                 fontSize: "12px",
-                borderRight: "1px solid hsl(220,16%,92%)",
-                marginRight: "12px",
+                borderRight: `1px solid ${lineNumberBorder}`,
+                marginRight: "16px",
               }}
             >
               {content}
@@ -323,7 +340,7 @@ export function CodeViewer({
         )}
       </div>
 
-      {/* Navigation footer */}
+      {/* ── Navigation footer ───────────────────────────────────────── */}
       <div
         className="shrink-0 flex items-center justify-between px-5 py-3 border-t border-border bg-card"
         style={{ boxShadow: "0 -1px 3px 0 hsl(220 25% 12% / 0.04)" }}
@@ -334,7 +351,7 @@ export function CodeViewer({
           className={cn(
             "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all border",
             hasPrev
-              ? "bg-secondary text-secondary-foreground border-border hover:bg-accent hover:text-foreground hover:border-border/80 active:scale-[0.98]"
+              ? "bg-secondary text-secondary-foreground border-border hover:bg-accent hover:text-foreground active:scale-[0.98]"
               : "opacity-35 cursor-not-allowed bg-secondary/40 text-muted-foreground border-border/40"
           )}
         >
@@ -342,7 +359,7 @@ export function CodeViewer({
           Previous
         </button>
 
-        {/* Progress */}
+        {/* Centre progress */}
         <div className="flex flex-col items-center gap-1.5">
           <div className="flex items-center gap-2 text-sm">
             <BookOpen className="h-3.5 w-3.5 text-muted-foreground" />
@@ -350,8 +367,7 @@ export function CodeViewer({
             <span className="text-muted-foreground">/</span>
             <span className="text-muted-foreground">{allFiles.length}</span>
           </div>
-          {/* Progress bar */}
-          <div className="w-32 h-1 rounded-full bg-border overflow-hidden">
+          <div className="w-36 h-1.5 rounded-full bg-border overflow-hidden">
             <div
               className="h-full rounded-full bg-primary transition-all duration-500 ease-out"
               style={{ width: `${progressPercent}%` }}
